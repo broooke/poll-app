@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-2" style="margin: auto;">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Available Polls</h3>
+            </div>
+                
+            <ul class="list-group">
+                {% for poll in polls%}
+                <li class="list-group-item">
+                    <strong>{{poll.question}}
+                        <a href="{% url 'delete' poll.id%}"><span class="material-icons">remove_circle_outline</span></a>
+                        <a href="{% url 'edit' poll.id%}"><span class="material-icons">create</span></a>
+                    </strong>
+                    <span class="pull-right" style="float: right;">
+                        <a href="{% url 'vote' poll.id %}" class="btn btn-info btn-xs">Vote</a> &nbsp;
+                        <a href="{% url 'result' poll.id %}" class="btn btn-default btn-xs">View Results</a> &nbsp;
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
