@@ -1,8 +1,14 @@
 from django import forms
-from .models import Poll
+from .models import Question, Choice
 
 class voteForm(forms.ModelForm):
     class Meta:
-        model = Poll
-        fields = ('question','one_choice','two_choice','three_choice')
+        model = Question
+        fields = ('question_text',)
+
+class voteForm1(forms.ModelForm):
+    class Meta:
+        model = Choice
+        fields = ('choice_text','question')
+
 

@@ -1,54 +1,68 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Poll, Vote
-from .forms import voteForm
+from .models import Poll, Vote, Question, Choice, Customer
+from .forms import voteForm, voteForm1
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
+from django.db.models import Count
+from django.forms import inlineformset_factory
+from django.core.paginator import Paginator
 
 # Create your views here.
 
 def main(request):
-    polls = Poll.objects.all()
-    context = {'polls':polls}
+    polls = Question.objects.all()
+    search_term=''
+    
+    if 'name' in request.GET:
+        polls=polls.order_by('question_text')
+    elif 'date' in request.GET:
+        polls=polls.order_by('pub_date')
+    elif 'search' in request.GET:
+        search_term = request.GET['search']
+        polls = polls.filter(question_text__icontains=search_term)
+    
+    paginator = Paginator(polls, 2)  # Show 6 contacts per page
+    page = request.GET.get('page')
+    polls_all = paginator.get_page(page)
+
+    get_dict_copy = request.GET.copy()
+    params = get_dict_copy.pop('page', True) and get_dict_copy.urlencode()
+
+    context = {'polls':polls,'search_term': search_term,'polls_all':polls_all,'params':params}
     return render(request,'main.html', context)
 
 def voteView(request, poll_id):
-    poll = get_object_or_404(Poll, id=poll_id)
-        
-    if request.method == 'POST':
-        action = request.POST['poll']
-        if action == 'option1':
-            poll.one_choice_count+=1
-        elif action == 'option2':
-            poll.two_choice_count+=1
-        else:
-            poll.three_choice_count+=1
-        poll.save()
-        return redirect('main')
+    poll = Question.objects.get(id=poll_id)
+    try:
+        selected_choice = poll.choice_set.get(pk=request.POST['choice'])
+    except:
+        print('Error')
     else:
-        form = voteForm()
-        
+        selected_choice.votes+=1
+        selected_choice.save()
+        return redirect('result', poll_id=poll_id)
+    
     context = {'poll':poll}
 
     return render(request,'vote.html', context)
 
 def resultView(request, poll_id):
-    poll = get_object_or_404(Poll, id=poll_id)
+    poll = Question.objects.get(id=poll_id)
 
     context = {'poll':poll}
 
     return render(request, 'result.html', context)
 
 def createView(request):
+    PollFormSet = inlineformset_factory(Question,Choice,fields=('choice_text',))
+    question = Question.objects.get(id=1)
+    form = PollFormSet(queryset=Choice.objects.none(),instance=question)
     if request.method == 'POST':
-        form = voteForm(request.POST)
+        form = PollFormSet(request.POST,instance=question)
         if form.is_valid():
-            form_save = form.save(commit=False)
-            form_save.user = request.user
-            form_save.save()
+            form.save()
             return redirect('main')
-    else:
-        form = voteForm()
     
     context = {'form':form}
 
@@ -95,12 +109,12 @@ def logOutView(request):
     return redirect('login')
 
 def deletePollView(request, poll_id):
-    poll = get_object_or_404(Poll, id=poll_id)
+    poll = get_object_or_404(Question, id=poll_id)
     poll.delete()
     return redirect('main')
 
 def editPollView(request, poll_id):
-    poll = Poll.objects.get(id=poll_id)
+    poll = Question.objects.get(id=poll_id)
     form = voteForm(instance=poll)
     if request.method == 'POST':
         form = voteForm(request.POST, instance=poll)
