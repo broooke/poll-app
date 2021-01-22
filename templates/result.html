@@ -25,4 +25,47 @@
         </div>
     </div>
 </div>
+<div id="myChart"></div>
+
+<script>
+	var state = {
+		'items':[],
+		'values':[],
+	}
+	var dataURL = '/resultdata/{{poll.id}}/'
+	$.ajax({
+		method:'GET',
+		url:dataURL,
+		success:function(response){
+			console.log("Response: " ,response)
+			for (var i in response){
+				var key = Object.keys(response[i])[0]
+				var value = Object.values(response[i])[0]
+				state.items.push(key)
+				state.values.push(value)
+			}
+			console.log("State:", state)
+			buildChart()
+		}
+	})
+
+	function buildChart(){
+		var charData = {
+			"type":"bar",
+			"scale-x":{
+				"values":state.items
+			},
+			"series":[
+				{
+					"values":state.values
+				}
+			]
+		}
+		zingchart.render({
+		id:"myChart",
+		data: charData,
+	});	
+	}
+
+</script>
 {% endblock %}

@@ -11,5 +11,9 @@ urlpatterns = [
     path('logout/', views.logOutView, name='logout'),
     path('delete/<str:poll_id>', views.deletePollView, name='delete'),
     path('edit/<str:poll_id>', views.editPollView, name='edit'),
-    path('my/polls/', views.pollUserView, name='userpolls')
+    path('my/polls/', views.pollUserView, name='userpolls'),
+    path('itog/', views.HomeView.as_view(), name='home'),
+    path('api/chart/data/', views.ChartData.as_view()),
+    path('api/data/', views.get_data, name='api-data'),
+    path('resultdata/<str:poll_id>/', views.resultData, name='resultdata'),
 ]

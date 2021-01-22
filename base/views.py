@@ -7,6 +7,11 @@ from django.contrib import messages
 from django.db.models import Count
 from django.forms import inlineformset_factory
 from django.core.paginator import Paginator
+from django.views.generic import View
+from django.http import JsonResponse
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 # Create your views here.
 
@@ -14,7 +19,6 @@ def main(request):
     polls = Question.objects.all()
     search_term=''
     dict = {}
-    total = Question.total
 
     if 'name' in request.GET:
         polls=polls.order_by('question_text')
@@ -23,8 +27,7 @@ def main(request):
     elif 'search' in request.GET:
         search_term = request.GET['search']
         polls = polls.filter(question_text__icontains=search_term)
-    elif 'vote' in request.GET:
-        pass
+
 
     paginator = Paginator(polls, 4)  # Show 6 contacts per page
     page = request.GET.get('page')
@@ -138,7 +141,49 @@ def pollUserView(request):
 
     return render(request, 'userpolls.html', context)
 
+class ChartData(APIView):
+    authentication_classes = []
+    permission_classes = []
 
+    def get(self, request, format=None):
+        qs=Question.objects.all()
+        
+        labels = []
+        default_items = []
+
+        for item in qs:
+            labels.append(item.question_text)
+            default_items.append(item.total)
+        print(labels)
+        print(default_items)
+
+        data = {
+                "labels": labels,
+                "default": default_items,
+        }
+        return Response(data)
+
+class HomeView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'api.html', {"customers": 10})
+
+def get_data(request, *args, **kwargs):
+    data = {
+        "sales": 100,
+        "customers": 10,
+    }
+    return JsonResponse(data) # http response
+
+def resultData(request, poll_id):
+    votesdata = []
+
+    question = Question.objects.get(id=poll_id)
+    votes = question.choice_set.all()
+
+    for i in votes:
+        votesdata.append({i.choice_text:i.votes})
+    print(votesdata)
+    return JsonResponse(votesdata, safe=False)
 
 
 
