@@ -34,6 +34,7 @@ class Vote(models.Model):
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
 
     def __str__(self):
         return self.question_text
@@ -57,7 +58,7 @@ class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
-    user = models.ForeignKey(Customer, null=True, on_delete= models.SET_NULL)
+    user = models.ForeignKey(Customer, null=True, on_delete= models.SET_NULL, blank=True)
 
     def __str__(self):
         return self.choice_text

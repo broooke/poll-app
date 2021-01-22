@@ -13,7 +13,9 @@ from django.core.paginator import Paginator
 def main(request):
     polls = Question.objects.all()
     search_term=''
-    
+    dict = {}
+    total = Question.total
+
     if 'name' in request.GET:
         polls=polls.order_by('question_text')
     elif 'date' in request.GET:
@@ -21,8 +23,10 @@ def main(request):
     elif 'search' in request.GET:
         search_term = request.GET['search']
         polls = polls.filter(question_text__icontains=search_term)
-    
-    paginator = Paginator(polls, 2)  # Show 6 contacts per page
+    elif 'vote' in request.GET:
+        pass
+
+    paginator = Paginator(polls, 4)  # Show 6 contacts per page
     page = request.GET.get('page')
     polls_all = paginator.get_page(page)
 
@@ -128,7 +132,7 @@ def editPollView(request, poll_id):
 
 def pollUserView(request):
     user = request.user
-    polls = Poll.objects.filter(user=user)
+    polls = Question.objects.filter(user=user)
 
     context = {'polls':polls}
 
